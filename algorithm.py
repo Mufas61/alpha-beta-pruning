@@ -1,13 +1,14 @@
 import graphviz as gv
 import logging
 
+
 # was max/min
 # cuts
 # a/b
 
 
-def alphabeta(graph, node, depth, isMaximizingPlayer, alpha, beta):
-    """algo"""
+def alphabeta(graph, node, isMaximizingPlayer, alpha, beta, out):
+    """alpha-beta-pruning that returns a describtion of done """
 
     if type(graph[node]) is not list:
         return graph[node]  # value of the node
@@ -15,25 +16,27 @@ def alphabeta(graph, node, depth, isMaximizingPlayer, alpha, beta):
     if isMaximizingPlayer:
         bestVal = float("-inf")
         for child in graph[node]:
-            value = alphabeta(graph, child, depth + 1, False, alpha, beta)
-            bestVal = max(bestVal, value)
+            value = alphabeta(graph, child, False, alpha, beta, out)
+            bestVal = max(bestVal, value)  # best from child-nodes
             alpha = max(alpha, bestVal)
+            out[child] = {"value": bestVal, "alpha": alpha, "beta": beta}
             if beta <= alpha:
-                break
+                break  # cut(graph, child)  # actually break but we need to ????
         return bestVal
 
     else:
         bestVal = float("inf")
         for child in graph[node]:
-            value = alphabeta(graph, child, depth + 1, True, alpha, beta)
-            bestVal = min(bestVal, value)
+            value = alphabeta(graph, child, True, alpha, beta, out)
+            bestVal = min(bestVal, value)  # best from child-nodes
             beta = min(beta, bestVal)
+            out[child] = {"value": bestVal, "alpha": alpha, "beta": beta}
             if beta <= alpha:
-                break
+                break  # (graph, child)  # actually break but we need to ????
         return bestVal
 
 
-def main():
+def test():
     graph = {
         'A': ['B', 'C'],
         'B': 1,
@@ -43,5 +46,6 @@ def main():
     f = alphabeta(graph, next(iter(graph)), 0, True, float("-inf"), float("inf"))
     print(f)
 
+
 if __name__ == '__main__':
-    main()
+    test()
