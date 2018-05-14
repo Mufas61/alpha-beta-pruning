@@ -6,7 +6,8 @@ COLOR_FOR_CUTS = 'red'
 
 COLOR_FOR_DEAD_NODES = 'grey'
 
-NORMAL_COLOR = 'black'
+NORMAL_EDGE_COLOR = 'deepskyblue3'
+NORMAL_NODE_COLOR = 'deepskyblue2'
 
 COUNTER = 0
 
@@ -72,7 +73,7 @@ def build_viz(order, graph, algo_desc):
 
     :param graph: Dict{'<node>': [<node|leaf>, <node|leaf>], '<leaf>': <value>, ...}, Ordering is important for the layer
     :param algo_desc: Dict{'<node>': {'value': <bestVal>, 'alpha': <alpha>, 'beta': <beta>}, ...}
-    :return: A Digraph from GraphViz as PNG.
+    :return: A graph from GraphViz as PNG.
     """
     viz_graph = gv.Digraph(format='png')
     __build_viz(viz_graph, order, graph, algo_desc)
@@ -100,19 +101,20 @@ def __build_viz(viz_graph, order, edges, algo_desc):
 
         # has NOT been processed?
         best_value, xlabel = '', ''
+        viz_graph.attr('node', style='filled', fontname='calibri', fontsize='12')
         if node_key not in algo_desc:
             viz_graph.attr('node', color=COLOR_FOR_DEAD_NODES)
         else:
-            viz_graph.attr('node', color=NORMAL_COLOR)
+            viz_graph.attr('node', color=NORMAL_NODE_COLOR)
             best_value = algo_desc[node_key]["value"]
             alpha = algo_desc[node_key]["alpha"]
             beta = algo_desc[node_key]["beta"]
-            xlabel = '&alpha;= ' + str(alpha) + '; &beta;= ' + str(beta)
+            xlabel = '&alpha;:' + str(alpha) + ', &beta;:' + str(beta)
 
         # style and build current node
         if type(edges[node_key]) is list:  # multi edges
             viz_graph.attr('node', shape=('triangle' if is_maximizer else 'invtriangle'))
-            viz_graph.node(node_key, str(best_value), xlabel=xlabel)
+            viz_graph.node(node_key, label=str(best_value) + '\n' + xlabel)
         else:
             viz_graph.attr('node', shape='square')
             viz_graph.node(node_key, str(best_value))
@@ -124,12 +126,13 @@ def __build_viz(viz_graph, order, edges, algo_desc):
             for _, node_child in enumerate(edges[node_key]):
 
                 # has been processed?
+                viz_graph.attr('edge', arrowhead='none')
                 if node_key not in algo_desc:
-                    viz_graph.attr('edge', color=COLOR_FOR_DEAD_NODES, style='dotted')
+                    viz_graph.attr('edge', color=COLOR_FOR_DEAD_NODES, style='dashed')
                 elif node_key in algo_desc and node_child not in algo_desc:
-                    viz_graph.attr('edge', color=COLOR_FOR_CUTS, style='line')
+                    viz_graph.attr('edge', color=COLOR_FOR_CUTS, style='dashed')
                 else:
-                    viz_graph.attr('edge', color=NORMAL_COLOR, style='line')
+                    viz_graph.attr('edge', color=NORMAL_EDGE_COLOR, style='line')
 
                 viz_graph.edge(node_key, node_child)
 
