@@ -23,9 +23,9 @@ def alpha_beta(graph):
     best_val, out = __alpha_beta(graph, start_node, True, float("-inf"), float("inf"), {})
 
     # add leaf values
-    for _, node in enumerate(graph):
-        if type(graph[node]) is not list:
-            out[node] = __dict_from(best_val=graph[node], alpha=0, beta=0)
+    # for _, node in enumerate(graph):
+    #   if type(graph[node]) is not list:
+    #      out[node] = __dict_from(best_val=graph[node], alpha=0, beta=0)
 
     return out
 
@@ -42,6 +42,7 @@ def __alpha_beta(graph, node, is_maximizing_player, alpha, beta, out):
     """
     # break condition - if is a leaf?
     if type(graph[node]) is not list:
+        out[node] = __dict_from(graph[node], 0, 0)
         return graph[node], out  # value of the leaf
 
     if is_maximizing_player:
@@ -52,7 +53,7 @@ def __alpha_beta(graph, node, is_maximizing_player, alpha, beta, out):
             alpha = max(alpha, best_val)
             out[node] = __dict_from(best_val, alpha, beta)
             if beta <= alpha:
-                break  # todo???
+                break
         return best_val, out
 
     else:
