@@ -2,6 +2,10 @@ import math
 
 import graphviz as gv
 
+SELECT_EDGE = 'edge'
+
+SELECT_NODE = 'node'
+
 COLOR_FOR_CUTS = 'red'
 
 COLOR_FOR_DEAD_NODES = 'grey'
@@ -12,15 +16,18 @@ NORMAL_NODE_COLOR = 'deepskyblue2'
 COUNTER = 0
 
 
-def alpha_beta(graph):
+def alpha_beta(graph, root=None):
     """
     Alpha-Beta-Pruning that returns a description of done operations.
 
     :param graph: Dict{'<node>': [<node|leaf>, <node|leaf>], '<leaf>': <value>, ...}
     :return: Dict{'<node>': {'value': <bestVal>, 'alpha': <alpha>, 'beta': <beta>}, ...}
     """
-    start_node = next(iter(graph))
-    best_val, out = __alpha_beta(graph, start_node, True, float("-inf"), float("inf"), {})
+    best_val, out = __alpha_beta(graph,
+                                 root if root is not None else next(iter(graph)),
+                                 True,
+                                 float("-inf"),
+                                 float("inf"), {})
 
     # add leaf values
     # for _, node in enumerate(graph):
@@ -68,7 +75,7 @@ def __alpha_beta(graph, node, is_maximizing_player, alpha, beta, out):
         return best_val, out
 
 
-def build_viz(order, graph, algo_desc):
+def build_viz(order, graph, algo_desc, branching_factor=2):
     """
     Builds a visualization from a graph and a description from a algorithm.
 
@@ -76,37 +83,31 @@ def build_viz(order, graph, algo_desc):
     :param algo_desc: Dict{'<node>': {'value': <bestVal>, 'alpha': <alpha>, 'beta': <beta>}, ...}
     :return: A graph from GraphViz as PNG.
     """
-    viz_graph = gv.Digraph(format='png')
-    __build_viz(viz_graph, order, graph, algo_desc)
+    viz_graph = gv.Graph(format='png')
+    __build_viz(viz_graph, order, graph, algo_desc, branching_factor)
     return viz_graph
 
 
-def __build_viz(viz_graph, order, edges, algo_desc):
+def __build_viz(viz_graph, order, edges, algo_desc, branching_factor):  # todo :param base
     """
-    :param viz_graph: From GraphViz
+    :param viz_graph: A graph from GraphViz as PNG
     :param order: Sorted list of the nodes. Is important for the layer
     :param edges: Dict{'<node>': [<node|leaf>, <node|leaf>], '<leaf>': <value>, ...}
     :param algo_desc: Dict{'<node>': {'value': <bestVal>, 'alpha': <alpha>, 'beta': <beta>}, ...}
     :return: formatted viz_graph-param.
     """
     # BUILD NODES
-    is_maximizer = False
+    is_maximizer = True
+    counter = 1
     next_at, next_at_power_of = 1, 0
-    for i, node_key in enumerate(order):
-
-        # if next layer
-        if next_at == i + 1:  # todo outsource
-            next_at_power_of += 1
-            next_at = math.pow(2, next_at_power_of)
-            is_maximizer = not is_maximizer
-
+    for node_key in order:
         # has NOT been processed?
         best_value, xlabel = '', ''
-        viz_graph.attr('node', style='filled', fontname='calibri', fontsize='12')
+        viz_graph.attr(SELECT_NODE, style='filled', fontname='calibri', fontsize='12')
         if node_key not in algo_desc:
-            viz_graph.attr('node', color=COLOR_FOR_DEAD_NODES)
+            viz_graph.attr(SELECT_NODE, color=COLOR_FOR_DEAD_NODES)
         else:
-            viz_graph.attr('node', color=NORMAL_NODE_COLOR)
+            viz_graph.attr(SELECT_NODE, color=NORMAL_NODE_COLOR)
             best_value = algo_desc[node_key]["value"]
             alpha = algo_desc[node_key]["alpha"]
             beta = algo_desc[node_key]["beta"]
@@ -114,26 +115,35 @@ def __build_viz(viz_graph, order, edges, algo_desc):
 
         # style and build current node
         if type(edges[node_key]) is list:  # multi edges
-            viz_graph.attr('node', shape=('triangle' if is_maximizer else 'invtriangle'))
+            viz_graph.attr(SELECT_NODE, shape=('triangle' if is_maximizer else 'invtriangle'))
             viz_graph.node(node_key, label=str(best_value) + '\n' + xlabel)
         else:
-            viz_graph.attr('node', shape='square')
+            viz_graph.attr(SELECT_NODE, shape='square')
             viz_graph.node(node_key, str(best_value))
 
+        #  if next layer
+        if next_at == counter:  # todo outsource
+            next_at_power_of += 1
+            next_at = math.pow(branching_factor, next_at_power_of)
+            is_maximizer = not is_maximizer
+            counter = 1
+        else:
+            counter += 1
+
     # BUILD EDGES
-    for i, node_key in enumerate(edges):
+    for _, node_key in enumerate(edges):
         # build edges
         if type(edges[node_key]) is list:  # multi edges
             for _, node_child in enumerate(edges[node_key]):
 
                 # has been processed?
-                viz_graph.attr('edge', arrowhead='none')
+                viz_graph.attr(SELECT_EDGE, arrowhead='none')
                 if node_key not in algo_desc:
-                    viz_graph.attr('edge', color=COLOR_FOR_DEAD_NODES, style='dashed')
+                    viz_graph.attr(SELECT_EDGE, color=COLOR_FOR_DEAD_NODES, style='dashed')
                 elif node_key in algo_desc and node_child not in algo_desc:
-                    viz_graph.attr('edge', color=COLOR_FOR_CUTS, style='dashed')
+                    viz_graph.attr(SELECT_EDGE, color=COLOR_FOR_CUTS, style='dashed')
                 else:
-                    viz_graph.attr('edge', color=NORMAL_EDGE_COLOR, style='line')
+                    viz_graph.attr(SELECT_EDGE, color=NORMAL_EDGE_COLOR, style='line')
 
                 viz_graph.edge(node_key, node_child)
 
@@ -147,51 +157,51 @@ def __dict_from(best_val, alpha, beta):
     return {"value": best_val, "alpha": alpha, "beta": beta}
 
 
-def build_graph(values):
+def build_graph(values, branching_factor=2):
     """
     Builds a dict representation of an graph from a list of values for the leafs.
 
     :param values: list[int, int, ...]
+    :param branching_factor: Amount of branches on each node.
     :return: Dict{'<node>': [<node|leaf>, <node|leaf>], '<leaf>': <value>, ...}
     """
     length = len(list(values))
-    if length not in [1, 2, 4, 8, 16, 32, 64]:  # TODO better range or something
-        raise RuntimeError("Illegal Argument: values has to be an amount of the power of two")
+    if length not in [math.pow(branching_factor, n) for n in range(100)]:  # TODO better range or something
+        raise RuntimeError("Illegal Argument: values has to be an amount of the power of " + str(branching_factor))
 
     result = {}
-    log = math.log(length, 2)
+    log = math.log(length, branching_factor)
     global COUNTER
     COUNTER = 0
-    __build_graph(result, 'X', log, values)
+    __build_graph(result, 'X', log, values, branching_factor)
 
-    return result
+    return sorted(result, key=lambda k: (len(k), k.lower())), result
 
 
-def __build_graph(result, node, length, values):
-    # brak condition
+def __build_graph(result, node, length, values, branching_factor):
+    # break condition
     if length == 0:
         global COUNTER
         result[node] = values[COUNTER]
         COUNTER += 1
         return
 
-    a_ = node + 'A'
-    b_ = node + 'B'
-    result[node] = [a_, b_]
-    __build_graph(result, a_, length - 1, values)
-    __build_graph(result, b_, length - 1, values)
+    childes = []
+    for x in range(branching_factor):
+        key = node + str(x)  # todo max 9
+        childes.append(key)
+        __build_graph(result, key, length - 1, values, branching_factor)
+    result[node] = childes
 
 
 def test():
-    graph = build_graph([1, 2, 3, 4])
-    print(graph)
+    order, graph2 = build_graph([10, 8, 7, 12, 9, 6, 4, 17], branching_factor=2)
 
-    algo_desc = alpha_beta(graph)
+    desc = alpha_beta(graph2, order[0])
+    print(desc)
 
-    order = sorted(graph, key=lambda k: (len(k), k.lower()))
-    print("Order=", order)
-    viz_graph = build_viz(order, graph, algo_desc)
-    print(viz_graph)
+    viz = build_viz(order, graph2, desc, branching_factor=2)
+    print(viz)
 
 
 if __name__ == '__main__':
