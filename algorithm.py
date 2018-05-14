@@ -8,16 +8,18 @@ COLOR_FOR_DEAD_NODES = 'grey'
 
 NORMAL_COLOR = 'black'
 
+COUNTER = 0
+
 
 def alpha_beta(graph):
     """
     Alpha-Beta-Pruning that returns a description of done operations.
 
-    :param graph: Dict{'<node>': [<node|leaf>,<node|leaf>], '<leaf>': <value>, ...}
+    :param graph: Dict{'<node>': [<node|leaf>, <node|leaf>], '<leaf>': <value>, ...}
     :return: Dict{'<node>': {'value': <bestVal>, 'alpha': <alpha>, 'beta': <beta>}, ...}
     """
     start_node = next(iter(graph))
-    best_val, out = _alpha_beta(graph, start_node, True, float("-inf"), float("inf"), {})
+    best_val, out = __alpha_beta(graph, start_node, True, float("-inf"), float("inf"), {})
 
     # add leaf values
     for _, node in enumerate(graph):
@@ -27,9 +29,9 @@ def alpha_beta(graph):
     return out
 
 
-def _alpha_beta(graph, node, is_maximizing_player, alpha, beta, out):
+def __alpha_beta(graph, node, is_maximizing_player, alpha, beta, out):
     """
-    :param graph: Dict{'<node>': [<node|leaf>,<node|leaf>], '<leaf>': <value>, ...}
+    :param graph: Dict{'<node>': [<node|leaf>, <node|leaf>], '<leaf>': <value>, ...}
     :param node: '<node>'
     :param is_maximizing_player: True/False
     :param alpha:
@@ -44,7 +46,7 @@ def _alpha_beta(graph, node, is_maximizing_player, alpha, beta, out):
     if is_maximizing_player:
         best_val = float("-inf")
         for child in graph[node]:
-            value, _ = _alpha_beta(graph, child, False, alpha, beta, out)
+            value, _ = __alpha_beta(graph, child, False, alpha, beta, out)
             best_val = max(best_val, value)  # best from child-nodes
             alpha = max(alpha, best_val)
             out[node] = __dict_from(best_val, alpha, beta)
@@ -55,7 +57,7 @@ def _alpha_beta(graph, node, is_maximizing_player, alpha, beta, out):
     else:
         best_val = float("inf")
         for child in graph[node]:
-            value, _ = _alpha_beta(graph, child, True, alpha, beta, out)
+            value, _ = __alpha_beta(graph, child, True, alpha, beta, out)
             best_val = min(best_val, value)  # best from child-nodes
             beta = min(beta, best_val)
             out[node] = __dict_from(best_val, alpha, beta)
@@ -64,32 +66,34 @@ def _alpha_beta(graph, node, is_maximizing_player, alpha, beta, out):
         return best_val, out
 
 
-def build(graph, algo_desc):
+def build_viz(order, graph, algo_desc):
     """
     Builds a visualization from a graph and a description from a algorithm.
-    :param graph: Dict{'<node>': [<node|leaf>,<node|leaf>], '<leaf>': <value>, ...}, Ordering is important for the layer
+
+    :param graph: Dict{'<node>': [<node|leaf>, <node|leaf>], '<leaf>': <value>, ...}, Ordering is important for the layer
     :param algo_desc: Dict{'<node>': {'value': <bestVal>, 'alpha': <alpha>, 'beta': <beta>}, ...}
     :return: A Digraph from GraphViz as PNG.
     """
     viz_graph = gv.Digraph(format='png')
-    _build(viz_graph, graph, algo_desc)
+    __build_viz(viz_graph, order, graph, algo_desc)
     return viz_graph
 
 
-def _build(viz_graph, edges, algo_desc):
+def __build_viz(viz_graph, order, edges, algo_desc):
     """
     :param viz_graph: From GraphViz
-    :param edges: Dict{'<node>': [<node|leaf>,<node|leaf>], '<leaf>': <value>, ...}, Ordering is important for the layer
+    :param order: Sorted list of the nodes. Is important for the layer
+    :param edges: Dict{'<node>': [<node|leaf>, <node|leaf>], '<leaf>': <value>, ...}
     :param algo_desc: Dict{'<node>': {'value': <bestVal>, 'alpha': <alpha>, 'beta': <beta>}, ...}
     :return: formatted viz_graph-param.
     """
     # BUILD NODES
     is_maximizer = False
     next_at, next_at_power_of = 1, 0
-    for i, node_key in enumerate(edges):
+    for i, node_key in enumerate(order):
 
         # if next layer
-        if next_at == i + 1:
+        if next_at == i + 1:  # todo outsource
             next_at_power_of += 1
             next_at = math.pow(2, next_at_power_of)
             is_maximizer = not is_maximizer
@@ -131,29 +135,57 @@ def _build(viz_graph, edges, algo_desc):
 
 def __dict_from(best_val, alpha, beta):
     """
-    Builds a description as dict for one node.
+    Helper-method that builds a description as dict for one node.
 
-    :param best_val:
-    :param alpha:
-    :param beta:
     :return: {"value": <best_val>, "alpha": <alpha>, "beta": <beta>}
     """
     return {"value": best_val, "alpha": alpha, "beta": beta}
 
 
-def test():
-    edges = {
-        'A': ['B', 'C'],  # 1. Layer
-        'B': ['D', 'E'],  # 2. Layer
-        'C': ['F', 'G'],
-        'D': 1,  # 3. Layer
-        'E': 2,
-        'F': 3,
-        'G': 4,
-    }
+def build_graph(values):
+    """
+    Builds a dict representation of an graph from a list of values for the leafs.
 
-    algo_desc = alpha_beta(edges)
-    viz_graph = build(edges, algo_desc)
+    :param values: list[int, int, ...]
+    :return: Dict{'<node>': [<node|leaf>, <node|leaf>], '<leaf>': <value>, ...}
+    """
+    length = len(list(values))
+    if length not in [1, 2, 4, 8, 16, 32, 64]:  # TODO better range or something
+        raise RuntimeError("Illegal Argument: values has to be an amount of the power of two")
+
+    result = {}
+    log = math.log(length, 2)
+    global COUNTER
+    COUNTER = 0
+    __build_graph(result, 'X', log, values)
+
+    return result
+
+
+def __build_graph(result, node, length, values):
+    # brak condition
+    if length == 0:
+        global COUNTER
+        result[node] = values[COUNTER]
+        COUNTER += 1
+        return
+
+    a_ = node + 'A'
+    b_ = node + 'B'
+    result[node] = [a_, b_]
+    __build_graph(result, a_, length - 1, values)
+    __build_graph(result, b_, length - 1, values)
+
+
+def test():
+    graph = build_graph([1, 2, 3, 4])
+    print(graph)
+
+    algo_desc = alpha_beta(graph)
+
+    order = sorted(graph, key=lambda k: (len(k), k.lower()))
+    print("Order=", order)
+    viz_graph = build_viz(order, graph, algo_desc)
     print(viz_graph)
 
 
