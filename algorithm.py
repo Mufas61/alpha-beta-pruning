@@ -99,7 +99,7 @@ def __build_viz(viz_graph, order, edges, algo_desc):
             is_maximizer = not is_maximizer
 
         # has NOT been processed?
-        best_value, alpha, beta = '', '', ''
+        best_value, xlabel = '', ''
         if node_key not in algo_desc:
             viz_graph.attr('node', color=COLOR_FOR_DEAD_NODES)
         else:
@@ -107,11 +107,12 @@ def __build_viz(viz_graph, order, edges, algo_desc):
             best_value = algo_desc[node_key]["value"]
             alpha = algo_desc[node_key]["alpha"]
             beta = algo_desc[node_key]["beta"]
+            xlabel = '&alpha;= ' + str(alpha) + '; &beta;= ' + str(beta)
 
         # style and build current node
         if type(edges[node_key]) is list:  # multi edges
             viz_graph.attr('node', shape=('triangle' if is_maximizer else 'invtriangle'))
-            viz_graph.node(node_key, str(best_value), xlabel='&alpha;= ' + str(alpha) + '; &beta;= ' + str(beta))
+            viz_graph.node(node_key, str(best_value), xlabel=xlabel)
         else:
             viz_graph.attr('node', shape='square')
             viz_graph.node(node_key, str(best_value))
