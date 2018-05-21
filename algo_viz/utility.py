@@ -13,5 +13,8 @@ def print_pretty(dict, order=None):
     else:
         print("{ ")
         for elem in order:
-            print("   " + str(elem) + ": " + str(dict[elem]))
+            try:
+                print("   " + str(elem) + ": " + str(dict[elem]))
+            except:
+                print("   " + str(elem) + ": None")
         print("}")
