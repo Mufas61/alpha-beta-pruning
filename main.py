@@ -11,13 +11,13 @@ from algo_viz.visualizer import build_viz
 
 
 def test():
-    order, graph2 = build_graph([10, 8, 7, 12, 9, 6, 4, 17, 20], branching_factor=3)
+    order, graph2 = build_graph([10, 8, 7, 12, 9, 6, 4, 17, 20], branching=3)
     print_pretty(graph2, order)
 
     desc = alpha_beta(graph2, root=order[0])
     print_pretty(desc, order)
 
-    viz = build_viz(order, graph2, desc, branching_factor=3)
+    viz = build_viz(order, graph2, desc, branching=3)
 
     if type(viz) is gv.Graph:
         print("PASSED!")
@@ -49,7 +49,7 @@ def test2():
     }
     desc = alpha_beta(graph)
     print_pretty(desc)
-    digraph = build_viz(graph.keys(), graph, desc, branching_factor=2)
+    digraph = build_viz(graph.keys(), graph, desc, branching=2)
     digraph.render(filename='img/graph')
     display(Image(filename='img/graph.png'))
 

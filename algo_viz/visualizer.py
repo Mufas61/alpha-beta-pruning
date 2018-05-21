@@ -16,22 +16,22 @@ NORMAL_NODE_COLOR = 'deepskyblue2'
 COUNTER = 0
 
 
-def build_viz(order, graph, algo_desc, branching_factor=2):
+def build_viz(order, graph, algo_desc, branching=2):
     """
     Builds a visualization from a graph and a description from a algorithm.
 
     :param order:
     :param graph: Dict{'<node>': [<node|leaf>, <node|leaf>], '<leaf>': <value>, ...}, Ordering is important for the layer
     :param algo_desc: Dict{'<node>': {'value': <bestVal>, 'alpha': <alpha>, 'beta': <beta>}, ...}
-    :param branching_factor: Amount of branches on each node.
+    :param branching: Amount of branches on each node.
     :return: A graph from GraphViz as PNG.
     """
     viz_graph = gv.Graph(format='png')
-    __build_viz(viz_graph, order, graph, algo_desc, branching_factor)
+    __build_viz(viz_graph, order, graph, algo_desc, branching)
     return viz_graph
 
 
-def __build_viz(viz_graph, order, edges, algo_desc, branching_factor):  # todo :param base
+def __build_viz(viz_graph, order, edges, algo_desc, branching):  # todo :param base
     """
     :param viz_graph: A graph from GraphViz as PNG
     :param order: Sorted list of the nodes. Is important for the layer
@@ -67,7 +67,7 @@ def __build_viz(viz_graph, order, edges, algo_desc, branching_factor):  # todo :
         #  if next layer
         if next_at == counter:  # todo outsource
             next_at_power_of += 1
-            next_at = math.pow(branching_factor, next_at_power_of)
+            next_at = math.pow(branching, next_at_power_of)
             is_maximizer = not is_maximizer
             counter = 1
         else:
