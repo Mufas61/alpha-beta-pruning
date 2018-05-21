@@ -12,10 +12,11 @@ def alpha_beta(graph, root=None):
     :return: Dict{'<node>': {'value': <bestVal>, 'alpha': <alpha>, 'beta': <beta>}, ...}
     """
     _, out = __alpha_beta(graph,
-                          root if root is not None else next(iter(graph.values())),
+                          root if root is not None else next(iter(graph)),
                           True,
                           float("-inf"),
-                          float("inf"), {})
+                          float("inf"),
+                          {})
 
     return out
 
