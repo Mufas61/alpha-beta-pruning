@@ -15,7 +15,7 @@ def build_random_leafs(depth=3, branching=3):
     :return: (order, graph) - (List[Key1, Key2, ...], Dict{'<node>': [<node|leaf>, <node|leaf>], '<leaf>': <value>, ...})
     """
     my_randoms = []
-    for i in range(int(math.pow(branching, depth - 1))):
+    for i in range(int(math.pow(branching, depth))):
         my_randoms.append(random.randrange(-99, 99, 1))
 
     return my_randoms
