@@ -31,31 +31,37 @@ def __alpha_beta(graph, node, is_maximizing_player, alpha, beta, out):
     :param out: Empty dictionary that will be used in recursion.
     :return: [<bestValue>, <DescriptionOfDoneOperations>]
     """
-    # break condition - if is a leaf?
+    # break condition - is a leaf?
     if type(graph[node]) is not list:
         out[node] = __dict_from(graph[node], 0, 0)
         return graph[node], out  # value of the leaf
 
     if is_maximizing_player:
         best_val = float("-inf")
+
         for child in graph[node]:
-            value, _ = __alpha_beta(graph, child, False, alpha, beta, out)
-            best_val = max(best_val, value)  # best from child-nodes
+            child_value, _ = __alpha_beta(graph, child, False, alpha, beta, out)
+            best_val = max(best_val, child_value)
             alpha = max(alpha, best_val)
             out[node] = __dict_from(best_val, alpha, beta)
+
             if beta <= alpha:
                 break
+
         return best_val, out
 
-    else:
+    else:  # is minimizer
         best_val = float("inf")
+
         for child in graph[node]:
-            value, _ = __alpha_beta(graph, child, True, alpha, beta, out)
-            best_val = min(best_val, value)  # best from child-nodes
+            child_value, _ = __alpha_beta(graph, child, True, alpha, beta, out)
+            best_val = min(best_val, child_value)
             beta = min(beta, best_val)
             out[node] = __dict_from(best_val, alpha, beta)
+
             if beta <= alpha:
                 break
+
         return best_val, out
 
 

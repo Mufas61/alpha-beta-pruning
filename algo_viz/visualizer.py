@@ -31,7 +31,7 @@ def build_viz(order, graph, algo_desc, branching=2):
     return viz_graph
 
 
-def __build_viz(viz_graph, order, edges, algo_desc, branching):  # todo :param base
+def __build_viz(viz_graph, order, edges, algo_desc, branching):
     """
     :param viz_graph: A graph from GraphViz as PNG
     :param order: Sorted list of the nodes. Is important for the layer
@@ -49,8 +49,12 @@ def __build_viz(viz_graph, order, edges, algo_desc, branching):  # todo :param b
         viz_graph.attr(SELECT_NODE, style='filled', fontname='calibri', fontsize='12')
         if node_key not in algo_desc:
             viz_graph.attr(SELECT_NODE, color=COLOR_FOR_DEAD_NODES)
+            viz_graph.attr(SELECT_NODE, fixedsize='true')
+            viz_graph.attr(SELECT_NODE, height='0.5', width='0.6')
         else:
             viz_graph.attr(SELECT_NODE, color=NORMAL_NODE_COLOR)
+            viz_graph.attr(SELECT_NODE, fixedsize='true')
+            viz_graph.attr(SELECT_NODE, height='1.2', width='1.6')
             best_value = algo_desc[node_key]["value"]
             alpha = algo_desc[node_key]["alpha"]
             beta = algo_desc[node_key]["beta"]
@@ -61,6 +65,7 @@ def __build_viz(viz_graph, order, edges, algo_desc, branching):  # todo :param b
             viz_graph.attr(SELECT_NODE, shape=('triangle' if is_maximizer else 'invtriangle'))
             viz_graph.node(node_key, label=str(best_value) + '\n' + xlabel)
         else:
+            viz_graph.attr(SELECT_NODE, height='0.3', width='0.3')
             viz_graph.attr(SELECT_NODE, shape='square')
             viz_graph.node(node_key, str(best_value))
 
