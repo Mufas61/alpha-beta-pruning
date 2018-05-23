@@ -20,11 +20,18 @@ def print_pretty(dict, order=None):
         print("}")
 
 
-def sort(leaf_values, depth=2, branching=2, maximizer=True):
-    mid = len(leaf_values) / 2
-    x1 = list[:mid]
-    x2 = list[mid:]
+def get_order(graph, root):
+    order = [root]
+    return __get_order(graph, root, order)
 
-    result = sort(max(min(x1), min(x2)))
 
-    return result
+def __get_order(graph, node, order):
+    children = graph[node]
+
+    if type(children) is list:
+        order += children
+
+        for child in children:
+            __get_order(graph, child, order)
+
+    return order

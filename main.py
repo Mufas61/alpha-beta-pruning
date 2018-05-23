@@ -5,6 +5,7 @@ import graphviz as gv
 from IPython.core.display import display, Image
 
 from algo_viz.alpha_beta_pruning import alpha_beta
+from algo_viz.minimax_tree_sort import min_max_sort
 from algo_viz.tree_builder import build_graph
 from algo_viz.utility import print_pretty
 from algo_viz.visualizer import build_viz
@@ -53,5 +54,33 @@ def test2():
     digraph.render(filename='img/graph')
     display(Image(filename='img/graph.png'))
 
+
+def test3():
+    graph = {
+        # 1. Layer
+        'X': ['A', 'B'],
+        # 2. Layer
+        'A': ['AA', 'AB'],
+        'B': ['BA', 'BB'],
+        # 3. Layer
+        'AA': ['AAA', 'AAB'],
+        'AB': ['ABA', 'ABB'],
+        'BA': ['BAA', 'BAB'],
+        'BB': ['BBA', 'BBB'],
+        # 4. Layer
+        'AAA': 10,
+        'AAB': 8,
+        'ABA': 7,
+        'ABB': 12,
+        'BAA': 9,
+        'BAB': 6,
+        'BBA': 4,
+        'BBB': 17,
+    }
+    print_pretty(graph)
+    sorted, order = min_max_sort(graph,'X')
+    print_pretty(sorted, order)
+
+
 if __name__ == '__main__':
-    test2()
+    test3()
