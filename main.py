@@ -4,7 +4,7 @@ Runs a test for debugging.
 import graphviz as gv
 from IPython.core.display import display, Image
 
-from algo_viz.algorithm import alpha_beta
+from algo_viz.alpha_beta_pruning import alpha_beta
 from algo_viz.tree_builder import build_graph
 from algo_viz.utility import print_pretty
 from algo_viz.visualizer import build_viz

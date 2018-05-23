@@ -18,3 +18,13 @@ def print_pretty(dict, order=None):
             except:
                 print("   " + str(elem) + ": None")
         print("}")
+
+
+def sort(leaf_values, depth=2, branching=2, maximizer=True):
+    mid = len(leaf_values) / 2
+    x1 = list[:mid]
+    x2 = list[mid:]
+
+    result = sort(max(min(x1), min(x2)))
+
+    return result
